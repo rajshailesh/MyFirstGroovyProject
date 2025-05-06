@@ -51,7 +51,7 @@
                 <executions>
                     <execution>
                         <goals>
-                            <goal>execute</goal>
+                            <goal>compile</goal>
                         </goals>
                     </execution>
                 </executions>
@@ -63,11 +63,13 @@
                         <scope>runtime</scope>
                     </dependency>
                 </dependencies>
-                <configuration>
-                    <scripts>
-                        <script>src/main/groovy/org.example.MyHandler.groovy</script>
-                    </scripts>
-                </configuration>
+<!--                <configuration>-->
+<!--                    <archive>-->
+<!--                        <manifest>-->
+<!--                            <mainClass>org.example.MyHandler</mainClass>-->
+<!--                        </manifest>-->
+<!--                    </archive>-->
+<!--                </configuration>-->
             </plugin>
         </plugins>
     </build>

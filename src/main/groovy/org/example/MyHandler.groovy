@@ -7,83 +7,101 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 
-static void handleFileProcessing(File file, Map mainMap) {
-  def jsonSlurper = new JsonSlurper()
-  def json = jsonSlurper.parse(file)
-  def percentage = (json.numPassedTests / json.numTotalTests) * 100 + "%"
-  def summary = [resultFileNameName: file.name, percentageofPassedTests: [percentage: percentage]]
-  mainMap.put(file.name, percentage)
-}
+public class MyHandler{
 
-def handleEvent(S3Event event, Context context) {
-  def s3EventRecord = event.getRecords().get(0)
-  def s3Bucket = s3EventRecord.getS3().getBucket().getName()
-  def s3ObjectKey = s3EventRecord.getS3().getObject().getKey()
+    static void handleFileProcessing(File file, Map mainMap) {
+    def jsonSlurper = new JsonSlurper()
+    def json = jsonSlurper.parse(file)
+    def percentage = (json.numPassedTests / json.numTotalTests) * 100 + "%"
+    def summary = [resultFileNameName: file.name, percentageofPassedTests: [percentage: percentage]]
+    mainMap.put(file.name, percentage)
+  }
 
-  def s3 = AmazonS3ClientBuilder.defaultClient()
-  def s3Object = s3.getObject(s3Bucket, s3ObjectKey)
-  def s3InputStream = s3Object.getObjectContent()
+  public static String handleEvent(S3Event event, Context context) {
+    def jsonString = "";
 
-  def objectMapper = new ObjectMapper()
-  def jsonObject = objectMapper.readValue(s3InputStream, Object.class)
+      try{
+        if(event != null && event.getRecords().size() > 0){
 
-  def summary
-  def mainMap = [:]
-  def percentage
+          def s3EventRecord = event.getRecords().get(0)
+          def s3Bucket = s3EventRecord.getS3().getBucket().getName()
+          def s3ObjectKey = s3EventRecord.getS3().getObject().getKey()
 
-  percentage = (jsonObject.numPassedTests / jsonObject.numTotalTests) * 100 + "%"
-  summary = [resultFileNameName: s3ObjectKey, percentageofPassedTests:[percentage: percentage]]
-  mainMap.put(s3ObjectKey, percentage)
+          def s3 = AmazonS3ClientBuilder.defaultClient()
+          def s3Object = s3.getObject(s3Bucket, s3ObjectKey)
+          def s3InputStream = s3Object.getObjectContent()
 
-  def jsonString = JsonOutput.toJson(mainMap)
-  jsonString = JsonOutput.prettyPrint(jsonString)
+          def objectMapper = new ObjectMapper()
+          def jsonObject = objectMapper.readValue(s3InputStream, Object.class)
 
-  println("---------------------")
-  println("JSON containing % successful test for corresponding build...\n")
-  println("---------------------")
-  println(jsonString)
+          def summary
+          def mainMap = [:]
+          def percentage
 
-  println("S3 Event: " + s3EventRecord)
-  println("JSON Data: " + jsonObject)
-  println("Function executed successfully.")
-}
+          percentage = (jsonObject.numPassedTests / jsonObject.numTotalTests) * 100 + "%"
+          summary = [resultFileNameName: s3ObjectKey, percentageofPassedTests:[percentage: percentage]]
+          mainMap.put(s3ObjectKey, percentage)
 
-static void main(String[] args) {
+          jsonString = JsonOutput.toJson(mainMap)
+          jsonString = JsonOutput.prettyPrint(jsonString)
 
-  def projectRoot = new File(".") // current directory
-  def resourcesDir = new File(projectRoot.getAbsoluteFile(), "../resources")
-  def jsonSlurper = new JsonSlurper()
-  def object = new Object()
-  def percentage
-  def json
-  def summary
-  def mainMap = [:]
-  if (resourcesDir.exists() && resourcesDir.isDirectory()) {
-    File[] files = resourcesDir.listFiles()
-    println("List of input files...\n")
-    if (files != null) {
-      files.each { file ->
-        println file.name
-        json = new JsonSlurper().parse(file)
-        percentage = (json.numPassedTests / json.numTotalTests) * 100 + "%"
-        summary = [resultFileNameName: file.name, percentageofPassedTests:[percentage: percentage]]
-        mainMap.put(file.name, percentage)
+          println("---------------------")
+          println("JSON containing % successful test for corresponding build...\n")
+          println("---------------------")
+          println(jsonString)
 
+          println("S3 Event: " + s3EventRecord)
+          println("JSON Data: " + jsonObject)
+          println("Function executed successfully.")
+        }else {
+          println("event object has no records")
+        }
+      }catch (Exception exp){
+        println("Error" + exp)
+      }
+
+    return "return from method:: " + jsonString
+  }
+
+  static void main(String[] args) {
+
+    def projectRoot = new File(".") // current directory
+    def resourcesDir = new File(projectRoot.getAbsoluteFile(), "../resources")
+    def jsonSlurper = new JsonSlurper()
+    def object = new Object()
+    def percentage
+    def json
+    def summary
+    def mainMap = [:]
+    if (resourcesDir.exists() && resourcesDir.isDirectory()) {
+      File[] files = resourcesDir.listFiles()
+      println("List of input files...\n")
+      if (files != null) {
+        files.each { file ->
+          println file.name
+          json = new JsonSlurper().parse(file)
+          percentage = (json.numPassedTests / json.numTotalTests) * 100 + "%"
+          summary = [resultFileNameName: file.name, percentageofPassedTests:[percentage: percentage]]
+          mainMap.put(file.name, percentage)
+
+        }
+      } else {
+        println "The resources directory is empty."
       }
     } else {
-      println "The resources directory is empty."
+      println "Resources directory not found or is not a directory."
     }
-  } else {
-    println "Resources directory not found or is not a directory."
-  }
-  def jsonString = JsonOutput.toJson(mainMap)
-  jsonString = JsonOutput.prettyPrint(jsonString)
-  println("---------------------")
-  println("JSON containing % successful test for corresponding build...\n")
-  println("---------------------")
-  println(jsonString)
-  //def json1 = new JsonSlurper().parse(new File(getClass().getResource("test-results.json").toURI()))
+    def jsonString = JsonOutput.toJson(mainMap)
+    jsonString = JsonOutput.prettyPrint(jsonString)
+    println("---------------------")
+    println("JSON containing % successful test for corresponding build...\n")
+    println("---------------------")
+    println(jsonString)
+    //def json1 = new JsonSlurper().parse(new File(getClass().getResource("test-results.json").toURI()))
 
-  //println(json1.get('numTotalTests'))
-  //println(json1)
+    //println(json1.get('numTotalTests'))
+    //println(json1)
+  }
+
 }
+

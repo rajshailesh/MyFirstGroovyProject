@@ -50,12 +50,13 @@ resource "aws_lambda_function" "hello_world" {
   s3_bucket = aws_s3_bucket.lambda_bucket.id
   s3_key    = aws_s3_object.lambda_hello_world.key
 
-  runtime = "java8"
-  handler = "org.example.MyHandler"
+  runtime = "java17"
+  handler = "org.example.MyHandler::handleEvent"
 
-  source_code_hash = "${path.module}/../target/lambda-1.0-SNAPSHOT.jar.output_base64sha256"
+  source_code_hash = "${path.module}/../target/MyFirstGroovyProject-1.0-SNAPSHOT.jar.jar.output_base64sha256"
 
   role = aws_iam_role.lambda_exec.arn
+  timeout = 30
 }
 
 resource "aws_cloudwatch_log_group" "hello_world" {
@@ -77,6 +78,23 @@ resource "aws_iam_role" "lambda_exec" {
         Service = "lambda.amazonaws.com"
       }
     }
+    ]
+  })
+}
+resource "aws_iam_policy" "lambda_S3_policy" {
+  name = "lambda_S3_policy"
+  description = "Lambda policy for S3"
+  policy = jsonencode({
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "Allow",
+        "Action": [
+          "s3:*",
+          "s3-object-lambda:*"
+        ],
+        "Resource": "*"
+      }
     ]
   })
 }
