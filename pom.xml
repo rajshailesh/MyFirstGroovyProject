@@ -21,8 +21,17 @@
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-s3</artifactId>
-            <version>1.12.782</version>
+            <version>1.12.783</version>
         </dependency>
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20250107</version>
+        </dependency>
+        <!-- Thanks for using https://jar-download.com -->
+
+        <!-- Thanks for using https://jar-download.com -->
+
         <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -40,6 +49,7 @@
             <artifactId>aws-lambda-java-events</artifactId>
             <version>3.15.0</version>
         </dependency>
+
     </dependencies>
 
     <build>
@@ -63,13 +73,13 @@
                         <scope>runtime</scope>
                     </dependency>
                 </dependencies>
-<!--                <configuration>-->
-<!--                    <archive>-->
-<!--                        <manifest>-->
-<!--                            <mainClass>org.example.MyHandler</mainClass>-->
-<!--                        </manifest>-->
-<!--                    </archive>-->
-<!--                </configuration>-->
+                <!--                <configuration>-->
+                <!--                    <archive>-->
+                <!--                        <manifest>-->
+                <!--                            <mainClass>org.example.MyHandler</mainClass>-->
+                <!--                        </manifest>-->
+                <!--                    </archive>-->
+                <!--                </configuration>-->
             </plugin>
         </plugins>
     </build>
